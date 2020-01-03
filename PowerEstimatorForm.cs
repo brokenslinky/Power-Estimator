@@ -22,45 +22,51 @@ namespace Power_Estimator
             chart1.Series["Volumetric Efficiency"].Points.Clear();
 
             // Collect engine and environmental parameters.
-            string compressor_map_location = System.Environment.CurrentDirectory + "\\..\\..\\compressor map.txt";
-            string VE_map_location = System.Environment.CurrentDirectory + "\\..\\..\\VE map.txt";
+            string compressorMapLocation = System.Environment.CurrentDirectory + "\\..\\..\\compressor map.txt";
+            string VEMapLocation = System.Environment.CurrentDirectory + "\\..\\..\\VE map.txt";
             string outputFile = System.Environment.CurrentDirectory + @"\..\..\output.csv";
             double displacement = Convert.ToDouble(displacementInput.Text);
-            double ambient_temperature = Convert.ToDouble(ambientTemperatureInput.Text);
-            Curve boost_curve = Curve.ReadCurve(richTextBox1.Text, richTextBox2.Text);
-            Table compressor_map = Table.ReadTable(compressor_map_location);
-            Table VE_map = Table.ReadTable(VE_map_location);
+            double ambientTemperature = Convert.ToDouble(ambientTemperatureInput.Text);
+            Curve boostCurve = Curve.ReadCurve(richTextBox1.Text, richTextBox2.Text);
+            Table compressorMap = Table.ReadTable(compressorMapLocation);
+            Table VEMap = Table.ReadTable(VEMapLocation);
 
-            double rpm = boost_curve.x[0];
-            if (rpm > VE_map.y[0])
-                rpm = VE_map.y[0];
-            double boost = boost_curve.Interpolate(rpm);
-            double VE = VE_map.Interpolate(boost + 14.7, rpm) / 100.0;
+            // Performance parameters.
+            double rpm = boostCurve.x[0];
+            if (rpm > VEMap.y[0])
+                rpm = VEMap.y[0];
+            double boost = boostCurve.Interpolate(rpm);
+            double VE = VEMap.Interpolate(boost + 14.7, rpm) / 100.0;
             double CFM = VE * 0.5 * displacement * rpm * 3.531 / 100000.0;
-            double compressor_efficiency = compressor_map.Interpolate(CFM, boost / 14.7 + 1.0) / 100.0;
+            double compressorEfficiency = compressorMap.Interpolate(CFM, boost / 14.7 + 1.0) / 100.0;
+
+            // Output file header.
             StreamWriter writer = new StreamWriter(outputFile);
             writer.WriteLine("RPM, boost, power, torque, temperature, compressorEfficiency, volumetricEfficiency");
-            for (rpm = VE_map.y[0]; rpm < VE_map.y[VE_map.y.Length - 1]; rpm += 100.0)
+            
+            // Sweep RPM values to estimate performace parameters.
+            for (rpm = VEMap.y[0]; rpm < VEMap.y[VEMap.y.Length - 1]; rpm += 100.0)
             {
-                if (rpm >= boost_curve.x[boost_curve.x.Length - 1])
+                if (rpm >= boostCurve.x[boostCurve.x.Length - 1])
                     break;
-                boost = boost_curve.Interpolate(rpm);
-                VE = VE_map.Interpolate(boost + 14.7, rpm) / 100.0;
-                CFM = VE * 0.5 * displacement * rpm * (1.0 + boost / 14.7) * (compressor_efficiency / (
-                    compressor_efficiency + Math.Pow(1.0 + boost / 14.7, 0.4 / 1.4) - 1.0)) * 3.531 / 100000.0;
-                if (CFM < compressor_map.x[0])
+                boost = boostCurve.Interpolate(rpm);
+                VE = VEMap.Interpolate(boost + 14.7, rpm) / 100.0;
+                CFM = VE * 0.5 * displacement * rpm * (1.0 + boost / 14.7) * (compressorEfficiency / (
+                    compressorEfficiency + Math.Pow(1.0 + boost / 14.7, 0.4 / 1.4) - 1.0)) * 3.531 / 100000.0;
+                if (CFM < compressorMap.x[0])
                     continue;
                 double power = CFM * 0.6;
                 double torque = power * 5252.0 / rpm;
-                compressor_efficiency = compressor_map.Interpolate(CFM, boost / 14.7 + 1.0) / 100.0;
-                double temperature = (459.7 + ambient_temperature) * ((Math.Pow((boost + 14.7) / 14.7, 0.4 /
-                    1.4) - 1.0) / compressor_efficiency + 1.0) - 459.7;
+                compressorEfficiency = compressorMap.Interpolate(CFM, boost / 14.7 + 1.0) / 100.0;
+                double temperature = (459.7 + ambientTemperature) * ((Math.Pow((boost + 14.7) / 14.7, 0.4 /
+                    1.4) - 1.0) / compressorEfficiency + 1.0) - 459.7;
+
                 chart1.Series["Power"].Points.AddXY(rpm, power);
                 chart1.Series["Torque"].Points.AddXY(rpm, torque);
                 chart1.Series["Temperature"].Points.AddXY(rpm, temperature);
-                chart1.Series["Compressor Efficiency"].Points.AddXY(rpm, compressor_efficiency);
+                chart1.Series["Compressor Efficiency"].Points.AddXY(rpm, compressorEfficiency);
                 chart1.Series["Volumetric Efficiency"].Points.AddXY(rpm, VE);
-                writer.WriteLine($"{rpm},{boost:N1},{power:N0},{torque:N0},{temperature:N0},{compressor_efficiency:N3},{VE:N3}");
+                writer.WriteLine($"{rpm},{boost:N1},{power:N0},{torque:N0},{temperature:N0},{compressorEfficiency:N3},{VE:N3}");
             }
             writer.Close();
             chart1.ChartAreas["ChartArea1"].AxisX.Minimum = 0.0;
@@ -70,65 +76,72 @@ namespace Power_Estimator
         
         private void findBoostCurve_Click(object sender, EventArgs e)
         {
+            // Prepare plotting area.
             chart1.Series["Power"].Points.Clear();
             chart1.Series["Torque"].Points.Clear();
             chart1.Series["Temperature"].Points.Clear();
             chart1.Series["Compressor Efficiency"].Points.Clear();
             chart1.Series["Volumetric Efficiency"].Points.Clear();
-            string compressor_map_location = System.Environment.CurrentDirectory + "\\..\\..\\compressor map.txt";
-            string VE_map_location = System.Environment.CurrentDirectory + "\\..\\..\\VE map.txt";
-            Curve boost_curve = Curve.ReadCurve(richTextBox1.Text, richTextBox2.Text);
+
+            // Collect engine and environmental parameters.
+            string compressorMapLocation = System.Environment.CurrentDirectory + "\\..\\..\\compressor map.txt";
+            string VEMapLocation = System.Environment.CurrentDirectory + "\\..\\..\\VE map.txt";
+            Curve boostCurve = Curve.ReadCurve(richTextBox1.Text, richTextBox2.Text);
             double displacement = Convert.ToDouble(displacementInput.Text);
-            double ambient_temperature = Convert.ToDouble(ambientTemperatureInput.Text);
-            Table compressor_map = Table.ReadTable(compressor_map_location);
-            Table VE_map = Table.ReadTable(VE_map_location);
+            double ambientTemperature = Convert.ToDouble(ambientTemperatureInput.Text);
+            Table compressorMap = Table.ReadTable(compressorMapLocation);
+            Table VEMap = Table.ReadTable(VEMapLocation);
+
+            // Sweep through RPM range.
             richTextBox2.Text = string.Empty;
-            foreach (double rpm in boost_curve.x)
+            foreach (double rpm in boostCurve.x)
             {
-                double best_fitness = 0.0;
-                double best_boost = 0.0;
-                double best_power = 0.0;
-                double best_temperature = 0.0;
-                double best_compressor_efficiency = 0.0;
-                double best_VE = 0.0;
-                double boost_increment = 0.1;
-                double boost_max = 18.0;
-                for (double boost = 0.0; boost < boost_max; boost += boost_increment)
+                double bestFitness = 0.0;
+                double bestBoost = 0.0;
+                double bestPower = 0.0;
+                double bestTemperature = 0.0;
+                double bestCompressorEfficiency = 0.0;
+                double bestVE = 0.0;
+                double boostIncrement = 0.1;
+                double boostMax = 18.0;
+
+                // sweep through boost range to find the ideal boost at this RPM
+                for (double boost = 0.0; boost < boostMax; boost += boostIncrement)
                 {
-                    double VE = VE_map.Interpolate(boost + 14.7, rpm) / 100.0; ;
+                    double VE = VEMap.Interpolate(boost + 14.7, rpm) / 100.0; ;
                     double CFM = VE * 0.5 * displacement * rpm * (1.0 + boost / 14.7) * (0.7 / (0.7 + Math.Pow(1.0 + boost /
                         14.7, 0.4 / 1.4) - 1.0)) * 3.531 / 100000.0;
-                    double compressor_efficiency = compressor_map.Interpolate(CFM, boost / 14.7 + 1.0) / 100.0; ;
-                    CFM = VE * 0.5 * displacement * rpm * (1.0 + boost / 14.7) * (compressor_efficiency / 
-                        (compressor_efficiency + Math.Pow(1.0 + boost / 14.7, 0.4 / 1.4) - 1.0)) * 3.531 / 100000.0;
+                    double compressorEfficiency = compressorMap.Interpolate(CFM, boost / 14.7 + 1.0) / 100.0; ;
+                    CFM = VE * 0.5 * displacement * rpm * (1.0 + boost / 14.7) * (compressorEfficiency / 
+                        (compressorEfficiency + Math.Pow(1.0 + boost / 14.7, 0.4 / 1.4) - 1.0)) * 3.531 / 100000.0;
                     double power = CFM * 0.6;
                     double torque = power * 5252.0 / rpm;
-                    compressor_efficiency = compressor_map.Interpolate(CFM, boost / 14.7 + 1.0) / 100.0;
-                    double temperature = (459.7 + ambient_temperature) * ((Math.Pow((boost + 14.7) / 14.7, 0.4 /
-                        1.4) - 1.0) / compressor_efficiency + 1.0) - 459.7;
+                    compressorEfficiency = compressorMap.Interpolate(CFM, boost / 14.7 + 1.0) / 100.0;
+                    double temperature = (459.7 + ambientTemperature) * ((Math.Pow((boost + 14.7) / 14.7, 0.4 /
+                        1.4) - 1.0) / compressorEfficiency + 1.0) - 459.7;
                     if (temperature > Convert.ToDouble(maxTemperatureInput.Text))
-                        continue;
+                        break;
 
-                    double fitness = power * compressor_efficiency;// / (temperature + 459.7);
+                    double fitness = power * compressorEfficiency;// / (temperature + 459.7);
 
-                    if (fitness > best_fitness)
+                    if (fitness > bestFitness)
                     {
-                        /*if ((power - best_power) / (temperature - best_temperature) < 0.2)
+                        /*if ((power - bestPower) / (temperature - bestTemperature) < 0.2)
                             continue;*/
-                        best_fitness = fitness;
-                        best_boost = boost;
-                        best_power = power;
-                        best_temperature = temperature;
-                        best_compressor_efficiency = compressor_efficiency;
-                        best_VE = VE;
+                        bestFitness = fitness;
+                        bestBoost = boost;
+                        bestPower = power;
+                        bestTemperature = temperature;
+                        bestCompressorEfficiency = compressorEfficiency;
+                        bestVE = VE;
                     }
                 }
-                chart1.Series["Power"].Points.AddXY(rpm, best_power);
-                chart1.Series["Torque"].Points.AddXY(rpm, best_power * 5252.0 / rpm);
-                chart1.Series["Temperature"].Points.AddXY(rpm, best_temperature);
-                chart1.Series["Compressor Efficiency"].Points.AddXY(rpm, best_compressor_efficiency);
-                chart1.Series["Volumetric Efficiency"].Points.AddXY(rpm, best_VE);
-                richTextBox2.Text += best_boost.ToString("N1") + "\n";
+                chart1.Series["Power"].Points.AddXY(rpm, bestPower);
+                chart1.Series["Torque"].Points.AddXY(rpm, bestPower * 5252.0 / rpm);
+                chart1.Series["Temperature"].Points.AddXY(rpm, bestTemperature);
+                chart1.Series["Compressor Efficiency"].Points.AddXY(rpm, bestCompressorEfficiency);
+                chart1.Series["Volumetric Efficiency"].Points.AddXY(rpm, bestVE);
+                richTextBox2.Text += bestBoost.ToString("N1") + "\n";
             }
             chart1.ChartAreas["ChartArea1"].AxisX.Minimum = 0.0;
             //chart1.ChartAreas["ChartArea1"].AxisX.Maximum = 7000.0;
