@@ -24,9 +24,9 @@ namespace Power_Estimator
             string outputFile = System.Environment.CurrentDirectory + @"\..\..\output.csv";
             double displacement = Convert.ToDouble(displacement_input.Text);
             double ambient_temperature = Convert.ToDouble(ambient_temperature_input.Text);
-            Curve boost_curve = Curve.Read_curve(richTextBox1.Text, richTextBox2.Text);
-            Table compressor_map = Table.Read_table(compressor_map_location);
-            Table VE_map = Table.Read_table(VE_map_location);
+            Curve boost_curve = Curve.ReadCurve(richTextBox1.Text, richTextBox2.Text);
+            Table compressor_map = Table.ReadTable(compressor_map_location);
+            Table VE_map = Table.ReadTable(VE_map_location);
             double rpm = boost_curve.x[0];
             if (rpm > VE_map.y[0])
                 rpm = VE_map.y[0];
@@ -73,11 +73,11 @@ namespace Power_Estimator
             chart1.Series["Volumetric Efficiency"].Points.Clear();
             string compressor_map_location = System.Environment.CurrentDirectory + "\\..\\..\\compressor map.txt";
             string VE_map_location = System.Environment.CurrentDirectory + "\\..\\..\\VE map.txt";
-            Curve boost_curve = Curve.Read_curve(richTextBox1.Text, richTextBox2.Text);
+            Curve boost_curve = Curve.ReadCurve(richTextBox1.Text, richTextBox2.Text);
             double displacement = Convert.ToDouble(displacement_input.Text);
             double ambient_temperature = Convert.ToDouble(ambient_temperature_input.Text);
-            Table compressor_map = Table.Read_table(compressor_map_location);
-            Table VE_map = Table.Read_table(VE_map_location);
+            Table compressor_map = Table.ReadTable(compressor_map_location);
+            Table VE_map = Table.ReadTable(VE_map_location);
             richTextBox2.Text = string.Empty;
             foreach (double rpm in boost_curve.x)
             {

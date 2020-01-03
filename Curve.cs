@@ -37,10 +37,10 @@ namespace Power_Estimator
                     indexLow = index;
             }
             double dydx = (y[indexLow + 1] - y[indexLow]) / (x[indexLow + 1] - x[indexLow]);
-            double y_value = y[indexLow];
+            double yValue = y[indexLow];
             if (!exactX)
-                y_value += dydx * (xValue - x[indexLow]);
-            return y_value;
+                yValue += dydx * (xValue - x[indexLow]);
+            return yValue;
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace Power_Estimator
         /// <param name="x">List of input values (comma, space, or line separated).</param>
         /// <param name="y">List of output values (comma, space, or line separated).</param>
         /// <returns>A Curve based on the supplied values.</returns>
-        static public Curve Read_curve(string x, string y)
+        static public Curve ReadCurve(string x, string y)
         {
             Curve curve = new Curve();
             double[] buffer = new double[64];

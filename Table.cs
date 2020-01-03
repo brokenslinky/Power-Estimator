@@ -29,33 +29,29 @@ namespace Power_Estimator
         /// <returns>The interpolated output value.</returns>
         public double Interpolate(double xValue, double yValue)
         {
-            int x_index_low = 0;
-            int y_index_low = 0;
-            bool exact_x = false;
-            bool exact_y = false;
-            for (int x_index = 0; x_index < x.Length - 1; x_index++)
+            int xIndexLow = 0;
+            int yIndexLow = 0;
+            for (int xIndex = 0; xIndex < x.Length - 1; xIndex++)
             {
-                if (xValue == x[x_index])
+                if (xValue == x[xIndex])
                 {
-                    exact_x = true;
-                    x_index_low = x_index;
+                    xIndexLow = xIndex;
                     break;
                 }
-                if ((x[x_index] < xValue && x[x_index + 1] > xValue) || (
-                    x[x_index] > xValue && x[x_index + 1] < xValue))
-                    x_index_low = x_index;
+                if ((x[xIndex] < xValue && x[xIndex + 1] > xValue) || (
+                    x[xIndex] > xValue && x[xIndex + 1] < xValue))
+                    xIndexLow = xIndex;
             }
-            for (int y_index = 0; y_index < y.Length - 1; y_index++)
+            for (int yIndex = 0; yIndex < y.Length - 1; yIndex++)
             {
-                if (yValue == y[y_index])
+                if (yValue == y[yIndex])
                 {
-                    exact_y = true;
-                    y_index_low = y_index;
+                    yIndexLow = yIndex;
                     break;
                 }
-                if ((y[y_index] < yValue && y[y_index + 1] > yValue) || (
-                    y[y_index] > yValue && y[y_index + 1] < yValue))
-                    y_index_low = y_index;
+                if ((y[yIndex] < yValue && y[yIndex + 1] > yValue) || (
+                    y[yIndex] > yValue && y[yIndex + 1] < yValue))
+                    yIndexLow = yIndex;
             }
             if (yValue < y[0])
                 yValue = y[0];
@@ -65,16 +61,16 @@ namespace Power_Estimator
                 xValue = x[0];
             if (xValue > x[x.Length - 1])
                 xValue = x[x.Length - 1];
-            double interpolated_value = 0.0;
-            double x_span = Math.Abs(x[x_index_low + 1] - x[x_index_low]);
-            double y_span = Math.Abs(y[y_index_low + 1] - y[y_index_low]);
-            double enclosed_area = x_span * y_span;
-            for (int x_index = x_index_low; x_index < x_index_low + 2; x_index++)
-                for (int y_index = y_index_low; y_index < y_index_low + 2; y_index++)
-                    interpolated_value += value[x_index, y_index] * 
-                        (x_span - Math.Abs(xValue - x[x_index])) * (y_span - Math.Abs(yValue - y[y_index]));
-            interpolated_value /= enclosed_area;
-            return interpolated_value;
+            double interpolatedValue = 0.0;
+            double xSpan = Math.Abs(x[xIndexLow + 1] - x[xIndexLow]);
+            double ySpan = Math.Abs(y[yIndexLow + 1] - y[yIndexLow]);
+            double enclosedArea = xSpan * ySpan;
+            for (int xIndex = xIndexLow; xIndex < xIndexLow + 2; xIndex++)
+                for (int yIndex = yIndexLow; yIndex < yIndexLow + 2; yIndex++)
+                    interpolatedValue += value[xIndex, yIndex] * 
+                        (xSpan - Math.Abs(xValue - x[xIndex])) * (ySpan - Math.Abs(yValue - y[yIndex]));
+            interpolatedValue /= enclosedArea;
+            return interpolatedValue;
         }
 
         /// <summary>
@@ -82,11 +78,11 @@ namespace Power_Estimator
         /// </summary>
         /// <param name="tableLocation">Path to the file to parse as a Table.</param>
         /// <returns>A new Table based on the input file.</returns>
-        static public Table Read_table(string tableLocation)
+        static public Table ReadTable(string tableLocation)
         {
             Table table = new Table();
-            double[] x_buffer = new double[64];
-            double[] y_buffer = new double[64];
+            double[] xBuffer = new double[64];
+            double[] yBuffer = new double[64];
             StreamReader reader = new StreamReader(tableLocation);
             while (reader.Peek() != '\t')
                 reader.ReadLine();
@@ -99,7 +95,7 @@ namespace Power_Estimator
                 {
                     if (column != -1)
                     {
-                        x_buffer[column] = Convert.ToDouble(word);
+                        xBuffer[column] = Convert.ToDouble(word);
                     }
                     word = string.Empty;
                     column++;
@@ -109,16 +105,16 @@ namespace Power_Estimator
             }
             if (word != string.Empty)
             {
-                x_buffer[column] = Convert.ToDouble(word);
+                xBuffer[column] = Convert.ToDouble(word);
                 column++;
                 word = string.Empty;
             }
             table.x = new double[column];
             for (column = 0; column < table.x.Length; column++)
             {
-                table.x[column] = x_buffer[column];
+                table.x[column] = xBuffer[column];
             }
-            double[,] table_buffer = new double[table.x.Length, 64];
+            double[,] tableBuffer = new double[table.x.Length, 64];
             int row = 0;
             while ((line = reader.ReadLine()) != null)
             {
@@ -129,10 +125,10 @@ namespace Power_Estimator
                     if (c == '\t')
                     {
                         if (column == -1)
-                            y_buffer[row] = Convert.ToDouble(word);
+                            yBuffer[row] = Convert.ToDouble(word);
                         else
                         {
-                            table_buffer[column, row] = Convert.ToDouble(word);
+                            tableBuffer[column, row] = Convert.ToDouble(word);
                         }
                         column++;
                         word = string.Empty;
@@ -142,19 +138,21 @@ namespace Power_Estimator
                 }
                 if (word != string.Empty)
                 {
-                    table_buffer[column, row] = Convert.ToDouble(word);
+                    tableBuffer[column, row] = Convert.ToDouble(word);
                     word = string.Empty;
                 }
                 row++;
             }
 
+            reader.Close();
+
             table.y = new double[row];
             table.value = new double[table.x.Length, table.y.Length];
             for (row = 0; row < table.y.Length; row++)
             {
-                table.y[row] = y_buffer[row];
+                table.y[row] = yBuffer[row];
                 for (column = 0; column < table.x.Length; column++)
-                    table.value[column, row] = table_buffer[column, row];
+                    table.value[column, row] = tableBuffer[column, row];
             }
             return table;
         }
