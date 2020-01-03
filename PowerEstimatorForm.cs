@@ -4,10 +4,10 @@ using System.IO;
 
 namespace Power_Estimator
 {
-    public partial class Form1 : Form
+    public partial class PowerEstimatorForm : Form
     {
 
-        public Form1()
+        public PowerEstimatorForm()
         {
             InitializeComponent();
         }

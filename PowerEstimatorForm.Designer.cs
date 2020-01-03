@@ -1,6 +1,6 @@
 ﻿namespace Power_Estimator
 {
-    partial class Form1
+    partial class PowerEstimatorForm
     {
         /// <summary>
         /// Required designer variable.
