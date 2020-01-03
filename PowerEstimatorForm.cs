@@ -102,16 +102,25 @@ namespace Power_Estimator
                 double bestTemperature = 0.0;
                 double bestCompressorEfficiency = 0.0;
                 double bestVE = 0.0;
-                double boostIncrement = 0.1;
-                double boostMax = 18.0;
+                double boostIncrement = 0.125;
+                double boostMax = VEMap.x[VEMap.x.Length - 1] > VEMap.x[0] ?
+                    VEMap.x[VEMap.x.Length - 1] : VEMap.x[0];
+                boostMax -= 14.7;
 
                 // sweep through boost range to find the ideal boost at this RPM
                 for (double boost = 0.0; boost < boostMax; boost += boostIncrement)
                 {
-                    double VE = VEMap.Interpolate(boost + 14.7, rpm) / 100.0; ;
+                    double VE = VEMap.Interpolate(boost + 14.7, rpm) / 100.0;
+                    if (VE < 0)
+                        MessageBox.Show("VE is negative!");
                     double CFM = VE * 0.5 * displacement * rpm * (1.0 + boost / 14.7) * (0.7 / (0.7 + Math.Pow(1.0 + boost /
                         14.7, 0.4 / 1.4) - 1.0)) * 3.531 / 100000.0;
+                    if (CFM < 0)
+                        MessageBox.Show("CFM is negative!");
                     double compressorEfficiency = compressorMap.Interpolate(CFM, boost / 14.7 + 1.0) / 100.0; ;
+                    if (compressorEfficiency < 0)
+                        MessageBox.Show($"Compressor efficiency is negative!" +
+                            $"\nCFM: {CFM}\nPressure Ratio: {1.0 + boost / 14.7}"); 
                     CFM = VE * 0.5 * displacement * rpm * (1.0 + boost / 14.7) * (compressorEfficiency / 
                         (compressorEfficiency + Math.Pow(1.0 + boost / 14.7, 0.4 / 1.4) - 1.0)) * 3.531 / 100000.0;
                     double power = CFM * 0.6;

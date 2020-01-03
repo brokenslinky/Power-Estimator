@@ -23,19 +23,32 @@ namespace Power_Estimator
 
         /// <summary>
         /// Linear interpolation of this table for the given input values.
+        /// Return the edge case if asked to extrapolate.
         /// </summary>
         /// <param name="xValue">The value of the 'x' input parameter.</param>
         /// <param name="yValue">The value of the 'y' input parameter.</param>
         /// <returns>The interpolated output value.</returns>
         public double Interpolate(double xValue, double yValue)
         {
-            int xIndexLow = 0;
-            int yIndexLow = 0;
+            // Use edge case if asked to extrapolate.
+            if (xValue > x[0] && xValue > x[x.Length - 1])
+                xValue = (x[0] > x[x.Length - 1] ? x[0] : x[x.Length - 1]);
+            if (xValue < x[0] && xValue < x[x.Length - 1])
+                xValue = (x[0] < x[x.Length - 1] ? x[0] : x[x.Length - 1]);
+            if (yValue > y[0] && yValue > y[y.Length - 1])
+                yValue = (y[0] > y[y.Length - 1] ? y[0] : y[y.Length - 1]);
+            if (yValue < y[0] && yValue < y[y.Length - 1])
+                yValue = (y[0] < y[y.Length - 1] ? y[0] : y[y.Length - 1]);
+
+            int xIndexLow = -1;
+            int yIndexLow = -1;
+            bool exactX = false, exactY = false;
             for (int xIndex = 0; xIndex < x.Length - 1; xIndex++)
             {
                 if (xValue == x[xIndex])
                 {
                     xIndexLow = xIndex;
+                    exactX = true;
                     break;
                 }
                 if ((x[xIndex] < xValue && x[xIndex + 1] > xValue) || (
@@ -47,20 +60,43 @@ namespace Power_Estimator
                 if (yValue == y[yIndex])
                 {
                     yIndexLow = yIndex;
+                    exactY = true;
                     break;
                 }
                 if ((y[yIndex] < yValue && y[yIndex + 1] > yValue) || (
                     y[yIndex] > yValue && y[yIndex + 1] < yValue))
                     yIndexLow = yIndex;
             }
-            if (yValue < y[0])
-                yValue = y[0];
-            if (yValue > y[y.Length - 1])
-                yValue = y[y.Length - 1];
-            if (xValue < x[0])
-                xValue = x[0];
-            if (xValue > x[x.Length - 1])
-                xValue = x[x.Length - 1];
+            if (xIndexLow < 0)
+            {
+                xIndexLow = x.Length - 1;
+                exactX = true;
+            }
+            if (yIndexLow < 0)
+            {
+                yIndexLow = y.Length - 1;
+                exactY = true;
+            }
+
+            if (exactX)
+            {
+                if (exactY)
+                    return value[xIndexLow, yIndexLow];
+                double yspan = Math.Abs(y[yIndexLow + 1] - y[yIndexLow]);
+                double interpolated = value[xIndexLow, yIndexLow] * (yspan - Math.Abs(yValue - y[yIndexLow]));
+                interpolated += value[xIndexLow, yIndexLow + 1] * (yspan - Math.Abs(yValue - y[yIndexLow + 1]));
+                interpolated /= yspan;
+                return interpolated;
+            }
+            if (exactY)
+            {
+                double xspan = Math.Abs(x[xIndexLow + 1] - x[xIndexLow]);
+                double interpolated = value[xIndexLow, yIndexLow] * (xspan - Math.Abs(xValue - x[xIndexLow]));
+                interpolated += value[xIndexLow + 1, yIndexLow] * (xspan - Math.Abs(xValue - x[xIndexLow + 1]));
+                interpolated /= xspan;
+                return interpolated;
+            }
+
             double interpolatedValue = 0.0;
             double xSpan = Math.Abs(x[xIndexLow + 1] - x[xIndexLow]);
             double ySpan = Math.Abs(y[yIndexLow + 1] - y[yIndexLow]);

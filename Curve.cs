@@ -18,11 +18,18 @@ namespace Power_Estimator
 
         /// <summary>
         /// Linear interpolation of this curve for the given input value.
+        /// Gives the edge value if asked to extrapolate.
         /// </summary>
         /// <param name="xValue">The value of the input parameter.</param>
         /// <returns>The interpolated output value.</returns>
         public double Interpolate(double xValue)
         {
+            // Return the edge value if asked to extrapolate.
+            if (xValue > x[0] && xValue > x[x.Length - 1])
+                return y[0] > y[y.Length - 1] ? y[0] : y[y.Length - 1];
+            if (xValue < x[0] && xValue < x[x.Length - 1])
+                return y[0] < y[y.Length - 1] ? y[0] : y[y.Length - 1];
+
             int indexLow = 0;
             bool exactX = false;
             for (int index = 0; index < x.Length - 1; index++)
