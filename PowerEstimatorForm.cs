@@ -12,21 +12,25 @@ namespace Power_Estimator
             InitializeComponent();
         }
 
-        private void show_curves_button_Click(object sender, EventArgs e)
+        private void showCurvesButton_Click(object sender, EventArgs e)
         {
+            // Prepare plotting area.
             chart1.Series["Power"].Points.Clear();
             chart1.Series["Torque"].Points.Clear();
             chart1.Series["Temperature"].Points.Clear();
             chart1.Series["Compressor Efficiency"].Points.Clear();
             chart1.Series["Volumetric Efficiency"].Points.Clear();
+
+            // Collect engine and environmental parameters.
             string compressor_map_location = System.Environment.CurrentDirectory + "\\..\\..\\compressor map.txt";
             string VE_map_location = System.Environment.CurrentDirectory + "\\..\\..\\VE map.txt";
             string outputFile = System.Environment.CurrentDirectory + @"\..\..\output.csv";
-            double displacement = Convert.ToDouble(displacement_input.Text);
-            double ambient_temperature = Convert.ToDouble(ambient_temperature_input.Text);
+            double displacement = Convert.ToDouble(displacementInput.Text);
+            double ambient_temperature = Convert.ToDouble(ambientTemperatureInput.Text);
             Curve boost_curve = Curve.ReadCurve(richTextBox1.Text, richTextBox2.Text);
             Table compressor_map = Table.ReadTable(compressor_map_location);
             Table VE_map = Table.ReadTable(VE_map_location);
+
             double rpm = boost_curve.x[0];
             if (rpm > VE_map.y[0])
                 rpm = VE_map.y[0];
@@ -64,7 +68,7 @@ namespace Power_Estimator
             this.Refresh();
         }
         
-        private void find_boost_curve_Click(object sender, EventArgs e)
+        private void findBoostCurve_Click(object sender, EventArgs e)
         {
             chart1.Series["Power"].Points.Clear();
             chart1.Series["Torque"].Points.Clear();
@@ -74,8 +78,8 @@ namespace Power_Estimator
             string compressor_map_location = System.Environment.CurrentDirectory + "\\..\\..\\compressor map.txt";
             string VE_map_location = System.Environment.CurrentDirectory + "\\..\\..\\VE map.txt";
             Curve boost_curve = Curve.ReadCurve(richTextBox1.Text, richTextBox2.Text);
-            double displacement = Convert.ToDouble(displacement_input.Text);
-            double ambient_temperature = Convert.ToDouble(ambient_temperature_input.Text);
+            double displacement = Convert.ToDouble(displacementInput.Text);
+            double ambient_temperature = Convert.ToDouble(ambientTemperatureInput.Text);
             Table compressor_map = Table.ReadTable(compressor_map_location);
             Table VE_map = Table.ReadTable(VE_map_location);
             richTextBox2.Text = string.Empty;
@@ -102,7 +106,7 @@ namespace Power_Estimator
                     compressor_efficiency = compressor_map.Interpolate(CFM, boost / 14.7 + 1.0) / 100.0;
                     double temperature = (459.7 + ambient_temperature) * ((Math.Pow((boost + 14.7) / 14.7, 0.4 /
                         1.4) - 1.0) / compressor_efficiency + 1.0) - 459.7;
-                    if (temperature > Convert.ToDouble(max_temperature_input.Text))
+                    if (temperature > Convert.ToDouble(maxTemperatureInput.Text))
                         continue;
 
                     double fitness = power * compressor_efficiency;// / (temperature + 459.7);

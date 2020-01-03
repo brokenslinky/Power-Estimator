@@ -39,18 +39,18 @@
             this.richTextBox2 = new System.Windows.Forms.RichTextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.show_curves_button = new System.Windows.Forms.Button();
+            this.showCurvesButton = new System.Windows.Forms.Button();
             this.chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
-            this.find_boost_curve = new System.Windows.Forms.Button();
-            this.max_temperature_input = new System.Windows.Forms.TextBox();
+            this.findBoostCurve = new System.Windows.Forms.Button();
+            this.maxTemperatureInput = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
-            this.ambient_temperature_input = new System.Windows.Forms.TextBox();
+            this.ambientTemperatureInput = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
-            this.displacement_input = new System.Windows.Forms.TextBox();
+            this.displacementInput = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -88,15 +88,15 @@
             this.label2.TabIndex = 3;
             this.label2.Text = "Boost (psi)";
             // 
-            // show_curves_button
+            // showCurvesButton
             // 
-            this.show_curves_button.Location = new System.Drawing.Point(12, 401);
-            this.show_curves_button.Name = "show_curves_button";
-            this.show_curves_button.Size = new System.Drawing.Size(101, 37);
-            this.show_curves_button.TabIndex = 4;
-            this.show_curves_button.Text = "Show Curves";
-            this.show_curves_button.UseVisualStyleBackColor = true;
-            this.show_curves_button.Click += new System.EventHandler(this.show_curves_button_Click);
+            this.showCurvesButton.Location = new System.Drawing.Point(12, 401);
+            this.showCurvesButton.Name = "showCurvesButton";
+            this.showCurvesButton.Size = new System.Drawing.Size(101, 37);
+            this.showCurvesButton.TabIndex = 4;
+            this.showCurvesButton.Text = "Show Curves";
+            this.showCurvesButton.UseVisualStyleBackColor = true;
+            this.showCurvesButton.Click += new System.EventHandler(this.showCurvesButton_Click);
             // 
             // chart1
             // 
@@ -137,23 +137,23 @@
             this.chart1.TabIndex = 5;
             this.chart1.Text = "chart1";
             // 
-            // find_boost_curve
+            // findBoostCurve
             // 
-            this.find_boost_curve.Location = new System.Drawing.Point(12, 444);
-            this.find_boost_curve.Name = "find_boost_curve";
-            this.find_boost_curve.Size = new System.Drawing.Size(101, 37);
-            this.find_boost_curve.TabIndex = 4;
-            this.find_boost_curve.Text = "Find Best Boost Curve";
-            this.find_boost_curve.UseVisualStyleBackColor = true;
-            this.find_boost_curve.Click += new System.EventHandler(this.find_boost_curve_Click);
+            this.findBoostCurve.Location = new System.Drawing.Point(12, 444);
+            this.findBoostCurve.Name = "findBoostCurve";
+            this.findBoostCurve.Size = new System.Drawing.Size(101, 37);
+            this.findBoostCurve.TabIndex = 4;
+            this.findBoostCurve.Text = "Find Best Boost Curve";
+            this.findBoostCurve.UseVisualStyleBackColor = true;
+            this.findBoostCurve.Click += new System.EventHandler(this.findBoostCurve_Click);
             // 
-            // max_temperature_input
+            // maxTemperatureInput
             // 
-            this.max_temperature_input.Location = new System.Drawing.Point(727, 10);
-            this.max_temperature_input.Name = "max_temperature_input";
-            this.max_temperature_input.Size = new System.Drawing.Size(38, 20);
-            this.max_temperature_input.TabIndex = 6;
-            this.max_temperature_input.Text = "300";
+            this.maxTemperatureInput.Location = new System.Drawing.Point(727, 10);
+            this.maxTemperatureInput.Name = "maxTemperatureInput";
+            this.maxTemperatureInput.Size = new System.Drawing.Size(38, 20);
+            this.maxTemperatureInput.TabIndex = 6;
+            this.maxTemperatureInput.Text = "300";
             // 
             // label3
             // 
@@ -191,13 +191,13 @@
             this.label6.TabIndex = 10;
             this.label6.Text = "°F";
             // 
-            // ambient_temperature_input
+            // ambientTemperatureInput
             // 
-            this.ambient_temperature_input.Location = new System.Drawing.Point(457, 10);
-            this.ambient_temperature_input.Name = "ambient_temperature_input";
-            this.ambient_temperature_input.Size = new System.Drawing.Size(28, 20);
-            this.ambient_temperature_input.TabIndex = 9;
-            this.ambient_temperature_input.Text = "75";
+            this.ambientTemperatureInput.Location = new System.Drawing.Point(457, 10);
+            this.ambientTemperatureInput.Name = "ambientTemperatureInput";
+            this.ambientTemperatureInput.Size = new System.Drawing.Size(28, 20);
+            this.ambientTemperatureInput.TabIndex = 9;
+            this.ambientTemperatureInput.Text = "75";
             // 
             // label7
             // 
@@ -217,13 +217,13 @@
             this.label8.TabIndex = 13;
             this.label8.Text = "cc";
             // 
-            // displacement_input
+            // displacementInput
             // 
-            this.displacement_input.Location = new System.Drawing.Point(228, 10);
-            this.displacement_input.Name = "displacement_input";
-            this.displacement_input.Size = new System.Drawing.Size(42, 20);
-            this.displacement_input.TabIndex = 12;
-            this.displacement_input.Text = "2497";
+            this.displacementInput.Location = new System.Drawing.Point(228, 10);
+            this.displacementInput.Name = "displacementInput";
+            this.displacementInput.Size = new System.Drawing.Size(42, 20);
+            this.displacementInput.TabIndex = 12;
+            this.displacementInput.Text = "2497";
             // 
             // Form1
             // 
@@ -232,16 +232,16 @@
             this.ClientSize = new System.Drawing.Size(800, 485);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.label8);
-            this.Controls.Add(this.displacement_input);
+            this.Controls.Add(this.displacementInput);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label6);
-            this.Controls.Add(this.ambient_temperature_input);
+            this.Controls.Add(this.ambientTemperatureInput);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
-            this.Controls.Add(this.max_temperature_input);
+            this.Controls.Add(this.maxTemperatureInput);
             this.Controls.Add(this.chart1);
-            this.Controls.Add(this.find_boost_curve);
-            this.Controls.Add(this.show_curves_button);
+            this.Controls.Add(this.findBoostCurve);
+            this.Controls.Add(this.showCurvesButton);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.richTextBox2);
@@ -260,18 +260,18 @@
         private System.Windows.Forms.RichTextBox richTextBox2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Button show_curves_button;
+        private System.Windows.Forms.Button showCurvesButton;
         private System.Windows.Forms.DataVisualization.Charting.Chart chart1;
-        private System.Windows.Forms.Button find_boost_curve;
-        private System.Windows.Forms.TextBox max_temperature_input;
+        private System.Windows.Forms.Button findBoostCurve;
+        private System.Windows.Forms.TextBox maxTemperatureInput;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.TextBox ambient_temperature_input;
+        private System.Windows.Forms.TextBox ambientTemperatureInput;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.TextBox displacement_input;
+        private System.Windows.Forms.TextBox displacementInput;
     }
 }
 
