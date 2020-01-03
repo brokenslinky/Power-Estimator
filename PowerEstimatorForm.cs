@@ -69,8 +69,8 @@ namespace Power_Estimator
                 writer.WriteLine($"{rpm},{boost:N1},{power:N0},{torque:N0},{temperature:N0},{compressorEfficiency:N3},{VE:N3}");
             }
             writer.Close();
-            chart1.ChartAreas["ChartArea1"].AxisX.Minimum = 2500.0;
-            chart1.ChartAreas["ChartArea1"].AxisX.Maximum = 6500.0;
+            chart1.ChartAreas["ChartArea1"].AxisX.Minimum = 1000.0;
+            //chart1.ChartAreas["ChartArea1"].AxisX.Maximum = 6500.0;
             chart1.ChartAreas["ChartArea1"].AxisX.MajorGrid.Interval = 1000.0;
             this.Refresh();
         }
@@ -124,7 +124,7 @@ namespace Power_Estimator
                             $"\nCFM: {CFM}\nPressure Ratio: {1.0 + boost / 14.7}"); 
                     CFM = VE * 0.5 * displacement * rpm * (1.0 + boost / 14.7) * (compressorEfficiency / 
                         (compressorEfficiency + Math.Pow(1.0 + boost / 14.7, 0.4 / 1.4) - 1.0)) * 3.531 / 100000.0;
-                    double power = CFM * 2.0 / 3/0;
+                    double power = CFM * 2.0 / 3.0;
                     double torque = power * 5252.0 / rpm;
                     compressorEfficiency = compressorMap.Interpolate(CFM, boost / 14.7 + 1.0) / 100.0;
                     double temperature = (459.7 + ambientTemperature) * ((Math.Pow((boost + 14.7) / 14.7, 0.4 /
@@ -153,11 +153,11 @@ namespace Power_Estimator
                 chart1.Series["Volumetric Efficiency"].Points.AddXY(rpm, bestVE);
                 richTextBox2.Text += bestBoost.ToString("N1") + "\n";
             }
-            chart1.ChartAreas["ChartArea1"].AxisX.Minimum = 2500.0;
-            chart1.ChartAreas["ChartArea1"].AxisX.Maximum = 6500.0;
-            //chart1.ChartAreas["ChartArea1"].AxisX.Maximum = 7000.0;
+            chart1.ChartAreas["ChartArea1"].AxisX.Minimum = 1000.0;
+            //chart1.ChartAreas["ChartArea1"].AxisX.Maximum = 6500.0;
             chart1.ChartAreas["ChartArea1"].AxisX.MajorGrid.Interval = 1000.0;
-            this.Refresh();
+            try { this.Refresh(); }
+            catch { }
         }
     }
 }
