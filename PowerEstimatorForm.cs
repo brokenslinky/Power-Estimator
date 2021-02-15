@@ -12,6 +12,12 @@ namespace Power_Estimator
             InitializeComponent();
         }
 
+        double calculateCFM(double VE, double displacement, double rpm, double boost, double compressorEfficiency, double pressureDrop = 0.0)
+        {
+            return VE * 0.5 * displacement * rpm * (1.0 + boost / 14.7) * (compressorEfficiency / (
+                compressorEfficiency + Math.Pow(1.0 + (boost + pressureDrop) / 14.7, 0.4 / 1.4) - 1.0)) * 3.531 / 100000.0;
+        }
+
         private void showCurvesButton_Click(object sender, EventArgs e)
         {
             // Prepare plotting area.
@@ -27,6 +33,7 @@ namespace Power_Estimator
             string outputFile = System.Environment.CurrentDirectory + @"\..\..\output.csv";
             double displacement = Convert.ToDouble(displacementInput.Text);
             double ambientTemperature = Convert.ToDouble(ambientTemperatureInput.Text);
+            double pressureDrop = Convert.ToDouble(pressureDropTextBox.Text);
             Curve boostCurve = Curve.ReadCurve(richTextBox1.Text, richTextBox2.Text);
             Table compressorMap = Table.ReadTable(compressorMapLocation);
             Table VEMap = Table.ReadTable(VEMapLocation);
@@ -37,8 +44,10 @@ namespace Power_Estimator
                 rpm = VEMap.y[0];
             double boost = boostCurve.Interpolate(rpm);
             double VE = VEMap.Interpolate(boost + 14.7, rpm) / 100.0;
-            double CFM = VE * 0.5 * displacement * rpm * 3.531 / 100000.0;
-            double compressorEfficiency = compressorMap.Interpolate(CFM, boost / 14.7 + 1.0) / 100.0;
+            double CFM = calculateCFM(VE, displacement, rpm, boost, 0.8, pressureDrop);
+            // since boost is regulated at the manifold, pressure drop through the intercooler 
+            // forces the turbo to build this extra boost on its end.
+            double compressorEfficiency = compressorMap.Interpolate(CFM, (boost + pressureDrop) / 14.7 + 1.0) / 100.0;
 
             // Output file header.
             StreamWriter writer = new StreamWriter(outputFile);
@@ -51,13 +60,12 @@ namespace Power_Estimator
                     break;
                 boost = boostCurve.Interpolate(rpm);
                 VE = VEMap.Interpolate(boost + 14.7, rpm) / 100.0;
-                CFM = VE * 0.5 * displacement * rpm * (1.0 + boost / 14.7) * (compressorEfficiency / (
-                    compressorEfficiency + Math.Pow(1.0 + boost / 14.7, 0.4 / 1.4) - 1.0)) * 3.531 / 100000.0;
+                CFM = calculateCFM(VE, displacement, rpm, boost, compressorEfficiency, pressureDrop);
                 if (CFM < compressorMap.x[0])
                     continue;
                 double power = CFM * 2.0 / 3.0;
                 double torque = power * 5252.0 / rpm;
-                compressorEfficiency = compressorMap.Interpolate(CFM, boost / 14.7 + 1.0) / 100.0;
+                compressorEfficiency = compressorMap.Interpolate(CFM, (boost + pressureDrop) / 14.7 + 1.0) / 100.0;
                 double temperature = (459.7 + ambientTemperature) * ((Math.Pow((boost + 14.7) / 14.7, 0.4 /
                     1.4) - 1.0) / compressorEfficiency + 1.0) - 459.7;
 
@@ -90,6 +98,7 @@ namespace Power_Estimator
             Curve boostCurve = Curve.ReadCurve(richTextBox1.Text, richTextBox2.Text);
             double displacement = Convert.ToDouble(displacementInput.Text);
             double ambientTemperature = Convert.ToDouble(ambientTemperatureInput.Text);
+            double pressureDrop = Convert.ToDouble(pressureDropTextBox.Text);
             Table compressorMap = Table.ReadTable(compressorMapLocation);
             Table VEMap = Table.ReadTable(VEMapLocation);
 
@@ -101,7 +110,7 @@ namespace Power_Estimator
                 double bestBoost = 0.0;
                 double bestPower = 0.0;
                 double bestTemperature = 0.0;
-                double bestCompressorEfficiency = 0.0;
+                double bestCompressorEfficiency = 0.7;
                 double bestVE = 0.0;
                 double boostIncrement = 0.125;
                 double boostMax = VEMap.x[VEMap.x.Length - 1] > VEMap.x[0] ?
@@ -114,19 +123,17 @@ namespace Power_Estimator
                     double VE = VEMap.Interpolate(boost + 14.7, rpm) / 100.0;
                     if (VE < 0)
                         MessageBox.Show("VE is negative!");
-                    double CFM = VE * 0.5 * displacement * rpm * (1.0 + boost / 14.7) * (0.7 / (0.7 + Math.Pow(1.0 + boost /
-                        14.7, 0.4 / 1.4) - 1.0)) * 3.531 / 100000.0;
+                    double CFM = calculateCFM(VE, displacement, rpm, boost, 0.7, pressureDrop);
                     if (CFM < 0)
                         MessageBox.Show("CFM is negative!");
-                    double compressorEfficiency = compressorMap.Interpolate(CFM, boost / 14.7 + 1.0) / 100.0; ;
+                    double compressorEfficiency = compressorMap.Interpolate(CFM, (boost + pressureDrop) / 14.7 + 1.0) / 100.0; ;
                     if (compressorEfficiency < 0)
                         MessageBox.Show($"Compressor efficiency is negative!" +
                             $"\nCFM: {CFM}\nPressure Ratio: {1.0 + boost / 14.7}"); 
-                    CFM = VE * 0.5 * displacement * rpm * (1.0 + boost / 14.7) * (compressorEfficiency / 
-                        (compressorEfficiency + Math.Pow(1.0 + boost / 14.7, 0.4 / 1.4) - 1.0)) * 3.531 / 100000.0;
+                    CFM = calculateCFM(VE, displacement, rpm, boost, compressorEfficiency, pressureDrop);
                     double power = CFM * 2.0 / 3.0;
                     double torque = power * 5252.0 / rpm;
-                    compressorEfficiency = compressorMap.Interpolate(CFM, boost / 14.7 + 1.0) / 100.0;
+                    compressorEfficiency = compressorMap.Interpolate(CFM, (boost + pressureDrop) / 14.7 + 1.0) / 100.0;
                     double temperature = (459.7 + ambientTemperature) * ((Math.Pow((boost + 14.7) / 14.7, 0.4 /
                         1.4) - 1.0) / compressorEfficiency + 1.0) - 459.7;
                     if (temperature > Convert.ToDouble(maxTemperatureInput.Text))
