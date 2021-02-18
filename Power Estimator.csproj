@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Adiabatic.cs" />
     <Compile Include="Curve.cs" />
     <Compile Include="PowerEstimatorForm.cs">
       <SubType>Form</SubType>

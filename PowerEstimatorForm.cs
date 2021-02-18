@@ -12,10 +12,39 @@ namespace Power_Estimator
             InitializeComponent();
         }
 
-        double calculateCFM(double VE, double displacement, double rpm, double boost, double compressorEfficiency, double pressureDrop = 0.0)
+        double CalculateCFM(double VE, double displacement, double rpm, double boost, 
+            double compressorEfficiency, double inletTemperature, double pressureDrop = 0.0)
         {
-            return VE * 0.5 * displacement * rpm * (1.0 + boost / 14.7) * (compressorEfficiency / (
-                compressorEfficiency + Math.Pow(1.0 + (boost + pressureDrop) / 14.7, 0.4 / 1.4) - 1.0)) * 3.531 / 100000.0;
+            double coolingFactor = Convert.ToDouble(coolingFactorTextBox.Text);
+            return VE * 0.5 * displacement * rpm * 
+                DensityChange(boost, compressorEfficiency, inletTemperature, pressureDrop, coolingFactor) * 3.531 / 100000.0;
+        }
+
+        /// Returns the ratio of density at the outlet compared to the inlet
+        /// <param name="boost">Amount of relative boost above atmosphere (PSI)</param>
+        /// <param name="compressorEfficiency">Adiabatic efficiency of the compressor</param>
+        /// <param name="inletTemperature">Ambient inlet temperature in degrees Farenheit</param>
+        /// <param name="intercoolerPressureDrop">Amount of pressure drop across the intercooler</param>
+        /// <param name="coolingFactor">
+        ///     Relative cooling applied by the intercooler on 0-1 scale. 0.0 = no cooling, 1.0 = return to ambient temperature
+        /// </param>
+        double DensityChange(double boost, double compressorEfficiency, double inletTemperature=75.0, double intercoolerPressureDrop=0.0, double coolingFactor=0.0)
+        {
+            // convert units
+            double finalPressureRatio = 1.0 + boost / 14.7;
+            double compressorPressureRatio = finalPressureRatio + intercoolerPressureDrop / 14.7;
+            inletTemperature += 459.67; // Rankine
+
+            // Adiabatic compression through the turbo
+            double boostMultiplier = Adiabatic.BoostMultiplier(compressorPressureRatio, compressorEfficiency);
+            double compressorOutletTemperature = inletTemperature * Adiabatic.TemperatureRatio(compressorPressureRatio, compressorEfficiency);
+
+            // Cooling and pressure drop through the intercooler
+            double temperatureAfterIntercooler = 
+                compressorOutletTemperature * (1.0 - coolingFactor) + inletTemperature * coolingFactor;
+            
+            return boostMultiplier * Adiabatic.DensityMultiplier(finalPressureRatio / compressorPressureRatio, 
+                temperatureAfterIntercooler / compressorOutletTemperature);
         }
 
         private void showCurvesButton_Click(object sender, EventArgs e)
@@ -44,7 +73,7 @@ namespace Power_Estimator
                 rpm = VEMap.y[0];
             double boost = boostCurve.Interpolate(rpm);
             double VE = VEMap.Interpolate(boost + 14.7, rpm) / 100.0;
-            double CFM = calculateCFM(VE, displacement, rpm, boost, 0.8, pressureDrop);
+            double CFM = CalculateCFM(VE, displacement, rpm, boost, 0.8, ambientTemperature, pressureDrop);
             // since boost is regulated at the manifold, pressure drop through the intercooler 
             // forces the turbo to build this extra boost on its end.
             double compressorEfficiency = compressorMap.Interpolate(CFM, (boost + pressureDrop) / 14.7 + 1.0) / 100.0;
@@ -60,7 +89,7 @@ namespace Power_Estimator
                     break;
                 boost = boostCurve.Interpolate(rpm);
                 VE = VEMap.Interpolate(boost + 14.7, rpm) / 100.0;
-                CFM = calculateCFM(VE, displacement, rpm, boost, compressorEfficiency, pressureDrop);
+                CFM = CalculateCFM(VE, displacement, rpm, boost, compressorEfficiency, ambientTemperature, pressureDrop);
                 if (CFM < compressorMap.x[0])
                     continue;
                 double power = CFM * 2.0 / 3.0;
@@ -123,14 +152,14 @@ namespace Power_Estimator
                     double VE = VEMap.Interpolate(boost + 14.7, rpm) / 100.0;
                     if (VE < 0)
                         MessageBox.Show("VE is negative!");
-                    double CFM = calculateCFM(VE, displacement, rpm, boost, 0.7, pressureDrop);
+                    double CFM = CalculateCFM(VE, displacement, rpm, boost, 0.7, ambientTemperature, pressureDrop);
                     if (CFM < 0)
                         MessageBox.Show("CFM is negative!");
                     double compressorEfficiency = compressorMap.Interpolate(CFM, (boost + pressureDrop) / 14.7 + 1.0) / 100.0; ;
                     if (compressorEfficiency < 0)
                         MessageBox.Show($"Compressor efficiency is negative!" +
                             $"\nCFM: {CFM}\nPressure Ratio: {1.0 + boost / 14.7}"); 
-                    CFM = calculateCFM(VE, displacement, rpm, boost, compressorEfficiency, pressureDrop);
+                    CFM = CalculateCFM(VE, displacement, rpm, boost, compressorEfficiency, ambientTemperature, pressureDrop);
                     double power = CFM * 2.0 / 3.0;
                     double torque = power * 5252.0 / rpm;
                     compressorEfficiency = compressorMap.Interpolate(CFM, (boost + pressureDrop) / 14.7 + 1.0) / 100.0;
@@ -139,7 +168,7 @@ namespace Power_Estimator
                     if (temperature > Convert.ToDouble(maxTemperatureInput.Text))
                         break;
 
-                    double fitness = power * compressorEfficiency;// / (temperature + 459.7);
+                    double fitness = power / Math.Pow(temperature + 459.7, 1.0 / 1.4);
 
                     if (fitness > bestFitness)
                     {
