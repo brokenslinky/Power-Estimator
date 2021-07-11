@@ -6,6 +6,7 @@ namespace Power_Estimator
 {
     public partial class PowerEstimatorForm : Form
     {
+        const double CFM_TO_HP = 2.0 / 3.0;
 
         public PowerEstimatorForm()
         {
@@ -92,7 +93,7 @@ namespace Power_Estimator
                 CFM = CalculateCFM(VE, displacement, rpm, boost, compressorEfficiency, ambientTemperature, pressureDrop);
                 if (CFM < compressorMap.x[0])
                     continue;
-                double power = CFM * 2.0 / 3.0;
+                double power = CFM * CFM_TO_HP;
                 double torque = power * 5252.0 / rpm;
                 compressorEfficiency = compressorMap.Interpolate(CFM, (boost + pressureDrop) / 14.7 + 1.0) / 100.0;
                 double temperature = (459.7 + ambientTemperature) * ((Math.Pow((boost + 14.7) / 14.7, 0.4 /
@@ -160,7 +161,7 @@ namespace Power_Estimator
                         MessageBox.Show($"Compressor efficiency is negative!" +
                             $"\nCFM: {CFM}\nPressure Ratio: {1.0 + boost / 14.7}"); 
                     CFM = CalculateCFM(VE, displacement, rpm, boost, compressorEfficiency, ambientTemperature, pressureDrop);
-                    double power = CFM * 2.0 / 3.0;
+                    double power = CFM * CFM_TO_HP;
                     double torque = power * 5252.0 / rpm;
                     compressorEfficiency = compressorMap.Interpolate(CFM, (boost + pressureDrop) / 14.7 + 1.0) / 100.0;
                     double temperature = (459.7 + ambientTemperature) * ((Math.Pow((boost + 14.7) / 14.7, 0.4 /
@@ -194,6 +195,11 @@ namespace Power_Estimator
             chart1.ChartAreas["ChartArea1"].AxisX.MajorGrid.Interval = 1000.0;
             try { this.Refresh(); }
             catch { }
+        }
+
+        private void richTextBox2_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }
